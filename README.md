@@ -2,6 +2,8 @@
 
 # Small Orange Cloudwatch Logger
 
+##Compatible with just Node 7!!!!!!
+
 Small helper to log into AWS Cloudwatch
 
 ## Features
@@ -35,3 +37,7 @@ Small helper to log into AWS Cloudwatch
 		logger.log({
 			test: 'test'
 		});
+
+## Final Words
+
+If you have any questions, contact me at felipe@smallorange.co.
