@@ -29,7 +29,7 @@ Small helper to log into AWS Cloudwatch
 		const logger = new Logger({
 			client: cloudWatchLogsClient,
 			logGroupName: 'specGroup',
-			debounceTime: 5000 // time to accumulate logs before writeLogs into CW
+			debounceTime: 5000 // time to accumulate logs before write logs into CW
 		});
 
 		logger.log('test');
