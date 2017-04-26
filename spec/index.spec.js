@@ -23,7 +23,7 @@ const cloudWatchLogsClient = new AWS.CloudWatchLogs();
 
 chai.use(sinonChai);
 
-describe.only('index.spec.js', () => {
+describe('index.js', () => {
 	let logger;
 
 	beforeEach(() => {
@@ -179,7 +179,7 @@ describe.only('index.spec.js', () => {
 					message: 'test',
 					timestamp: sinon.match.number
 				}, {
-					message: sinon.match.string,
+					message: sinon.match.array,
 					timestamp: sinon.match.number
 				}, {
 					message: JSON.stringify({
@@ -283,23 +283,26 @@ describe.only('index.spec.js', () => {
 		it('should handle error', () => {
 			const err = new Error('test');
 
-			expect(logger.format(err)).to.equal(logger.stringifyStack(err.stack));
+			expect(logger.format(err)).to.deep.equal(logger.stringifyStack(err.stack));
 		});
 
 		it('should handle empty error', () => {
 			const err = new Error();
 
-			expect(logger.format(err)).to.equal(logger.stringifyStack(err.stack));
+			expect(logger.format(err)).to.deep.equal(logger.stringifyStack(err.stack));
 		});
 	});
 
 	describe('stringifyStack', () => {
 		it('should compose', () => {
-			expect(logger.stringifyStack({
-				stack: `
-					stack
-				`
-			})).to.equal('{"stack":"\n\t\t\t\t\tstack\n\t\t\t\t"}');
+			const stack = `Error
+				    at Context.it
+				    at callFn`;
+
+			expect(logger.stringifyStack(stack)).to.deep.equal([
+				'at Context.it',
+				'at callFn'
+			]);
 		});
 	});
 

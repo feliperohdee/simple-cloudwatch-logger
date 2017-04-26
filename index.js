@@ -82,9 +82,14 @@ module.exports = class CloudWatch {
 
 	stringifyStack(x) {
 		return JSON.stringify(x)
-			.replace(/\\"/g, '"')
-			.replace(/\\t/g, '\t')
-			.replace(/\\n/g, '\n');
+			.replace(/\"/g, '')
+			.replace(/\t/g, '')
+			.replace(/\\t/g, '')
+			.replace(/\s{2,}/g, '')
+			.replace(/\\s{2,}/g, '')
+			.replace(/\\n/g, '\n')
+			.split('\n')
+			.slice(1);
 	}
 
 	log(message) {
@@ -116,34 +121,34 @@ module.exports = class CloudWatch {
 				subscriber.complete();
 			});
 		})
-		.catch(err => {
-			this.sequenceToken = null;
+			.catch(err => {
+				this.sequenceToken = null;
 
-			return Observable.throw(err);
-		})
-		.do(response => {
-			this.sequenceToken = response.nextSequenceToken;
-		});
+				return Observable.throw(err);
+			})
+			.do(response => {
+				this.sequenceToken = response.nextSequenceToken;
+			});
 	}
 
 	createLogStream(logStreamName) {
 		return Observable.create(subscriber => {
-				const {
+			const {
 					logGroupName
 				} = this;
 
-				this.client.createLogStream({
-					logGroupName,
-					logStreamName
-				}, (err, response) => {
-					if (err) {
-						return subscriber.error(err);
-					}
+			this.client.createLogStream({
+				logGroupName,
+				logStreamName
+			}, (err, response) => {
+				if (err) {
+					return subscriber.error(err);
+				}
 
-					subscriber.next(response);
-					subscriber.complete();
-				});
-			})
+				subscriber.next(response);
+				subscriber.complete();
+			});
+		})
 			.retryWhen(err => {
 				return err
 					.mergeMap(err => {
