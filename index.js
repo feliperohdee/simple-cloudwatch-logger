@@ -1,11 +1,11 @@
 const _ = require('lodash');
+const beautyError = require('smallorange-beauty-error');
 const {
 	Observable,
 	Subject
 } = require('rxjs');
 
 module.exports = class CloudWatch {
-
 	constructor(options) {
 		if (!options.client) {
 			throw new Error('no cloudwatch client provided');
@@ -74,22 +74,10 @@ module.exports = class CloudWatch {
 		if (_.isString(data)) {
 			return data;
 		} else if (data instanceof Error) {
-			return this.stringifyStack(data.stack);
+			return JSON.stringify(beautyError(data), null, 2);
 		}
 
 		return JSON.stringify(data, null, 2);
-	}
-
-	stringifyStack(x) {
-		return JSON.stringify(x)
-			.replace(/\"/g, '')
-			.replace(/\t/g, '')
-			.replace(/\\t/g, '')
-			.replace(/\s{2,}/g, '')
-			.replace(/\\s{2,}/g, '')
-			.replace(/\\n/g, '\n')
-			.split('\n')
-			.slice(1);
 	}
 
 	log(message) {

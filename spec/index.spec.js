@@ -3,6 +3,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 
+const beautyError = require('smallorange-beauty-error');
 const AWS = require('aws-sdk');
 const {
 	Observable,
@@ -162,11 +163,13 @@ describe('index.js', () => {
 			});
 
 			it('should call writeLogs with batched messages', () => {
+				const err = new Error('error');
+
 				logger._streamName = logger.streamName;
 				logger.sequenceToken = 'sequenceToken';
 
 				logger.logQueue.next('test');
-				logger.logQueue.next(new Error('error'));
+				logger.logQueue.next(err);
 				logger.logQueue.next({
 					test: 'test'
 				});
@@ -179,7 +182,7 @@ describe('index.js', () => {
 					message: 'test',
 					timestamp: sinon.match.number
 				}, {
-					message: sinon.match.array,
+					message: JSON.stringify(beautyError(err), null, 2),
 					timestamp: sinon.match.number
 				}, {
 					message: JSON.stringify({
@@ -283,26 +286,13 @@ describe('index.js', () => {
 		it('should handle error', () => {
 			const err = new Error('test');
 
-			expect(logger.format(err)).to.deep.equal(logger.stringifyStack(err.stack));
+			expect(logger.format(err)).to.deep.equal(JSON.stringify(beautyError(err), null, 2));
 		});
 
 		it('should handle empty error', () => {
 			const err = new Error();
 
-			expect(logger.format(err)).to.deep.equal(logger.stringifyStack(err.stack));
-		});
-	});
-
-	describe('stringifyStack', () => {
-		it('should compose', () => {
-			const stack = `Error
-				    at Context.it
-				    at callFn`;
-
-			expect(logger.stringifyStack(stack)).to.deep.equal([
-				'at Context.it',
-				'at callFn'
-			]);
+			expect(logger.format(err)).to.deep.equal(JSON.stringify(beautyError(err), null, 2));
 		});
 	});
 
