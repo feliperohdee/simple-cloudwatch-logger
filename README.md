@@ -1,8 +1,4 @@
-[![CircleCI](https://circleci.com/gh/feliperohdee/smallorange-cloudwatch-logger.svg?style=svg)](https://circleci.com/gh/feliperohdee/smallorange-cloudwatch-logger)
-
-# Small Orange Cloudwatch Logger
-
-##Compatible with just Node 7!!!!!!
+# Simple Cloudwatch Logger
 
 Small helper to log into AWS Cloudwatch
 
@@ -17,7 +13,7 @@ Small helper to log into AWS Cloudwatch
 ## Usage
 
 		const AWS = require('aws-sdk');
-		const Logger = require('smallorange-cloudwatch-logger');
+		const Logger = require('simple-cloudwatch-logger');
 
 		AWS.config.update({
 			accessKeyId: '{accessKeyId}',
@@ -37,7 +33,3 @@ Small helper to log into AWS Cloudwatch
 		logger.log({
 			test: 'test'
 		});
-
-## Final Words
-
-If you have any questions, contact me at felipe@smallorange.co.

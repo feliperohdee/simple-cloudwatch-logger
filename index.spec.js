@@ -1,17 +1,14 @@
-const _ = require('lodash');
 const chai = require('chai');
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 
-const beautyError = require('smallorange-beauty-error');
+const beautyError = require('simple-beauty-error');
 const AWS = require('aws-sdk');
-const {
-	Observable,
-	Subject,
-	TestScheduler
-} = require('rxjs');
+const rx = require('rxjs');
+const rxop = require('rxjs/operators');
+const rxtest = require('rxjs/testing');
 
-const Logger = require('../');
+const Logger = require('./');
 
 AWS.config.update({
 	accessKeyId: process.env.accessKeyId,
@@ -62,7 +59,7 @@ describe('index.js', () => {
 		});
 
 		it('should have logQueue', () => {
-			expect(logger.logQueue).to.be.instanceOf(Subject);
+			expect(logger.logQueue).to.be.instanceOf(rx.Subject);
 		});
 
 		it('should have a random', () => {
@@ -90,7 +87,6 @@ describe('index.js', () => {
 		});
 
 		it('should return _streamName and sequenceToken if same', () => {
-			const streamName = logger.streamName;
 			logger._streamName = logger.streamName;
 			logger.sequenceToken = 'sequenceToken';
 
@@ -103,15 +99,14 @@ describe('index.js', () => {
 		let testScheduler;
 
 		beforeEach(() => {
-			testScheduler = new TestScheduler();
+			testScheduler = new rxtest.TestScheduler();
 
-			const originalDebounceTime = Observable.prototype.debounceTime;
+			const originalDebounceTime = rxop.debounceTime;
 
-			sinon.stub(Observable.prototype, 'debounceTime')
+			sinon.stub(rxop, 'debounceTime')
 				.callsFake(function(...args) {
 					return originalDebounceTime.apply(this, args.concat(testScheduler));
 				});
-
 
 			logger = new Logger({
 				client: cloudWatchLogsClient,
@@ -121,7 +116,7 @@ describe('index.js', () => {
 		});
 
 		afterEach(() => {
-			Observable.prototype.debounceTime.restore();
+			rxop.debounceTime.restore();
 		});
 
 		it('should set isStarted', () => {
@@ -129,7 +124,7 @@ describe('index.js', () => {
 		});
 
 		it('should set sourceDebounce', () => {
-			expect(logger.sourceDebounce).to.exists;
+			expect(logger.sourceDebounce).to.exist;
 		});
 
 		it('should subscribe logQueue', () => {
@@ -139,9 +134,9 @@ describe('index.js', () => {
 		describe('logQueue', () => {
 			beforeEach(() => {
 				sinon.stub(logger, 'writeLogs')
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 				sinon.stub(logger, 'createLogStream')
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 			});
 
 			afterEach(() => {
@@ -196,13 +191,13 @@ describe('index.js', () => {
 		describe('logQueue observable error', () => {
 			beforeEach(() => {
 				sinon.stub(logger, 'writeLogs')
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 
 				sinon.stub(logger, 'createLogStream')
 					.onFirstCall()
-					.returns(Observable.throw(new Error('error')))
+					.returns(rx.throwError(new Error('error')))
 					.onSecondCall()
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 			});
 
 			afterEach(() => {
@@ -234,13 +229,13 @@ describe('index.js', () => {
 		describe('logQueue internal error', () => {
 			beforeEach(() => {
 				sinon.stub(logger, 'writeLogs')
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 
 				sinon.stub(logger, 'createLogStream')
 					.onFirstCall()
 					.throws(new Error('internal error'))
 					.onSecondCall()
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 			});
 
 			afterEach(() => {
@@ -449,7 +444,7 @@ describe('index.js', () => {
 				};
 
 				sinon.stub(logger, 'createLogGroup')
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 
 				sinon.stub(logger.client, 'createLogStream')
 					.onFirstCall()
@@ -478,7 +473,7 @@ describe('index.js', () => {
 				}
 
 				sinon.stub(logger, 'createLogGroup')
-					.returns(Observable.of(null));
+					.returns(rx.of(null));
 
 				sinon.stub(logger.client, 'createLogStream')
 					.onFirstCall()
